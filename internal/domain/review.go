@@ -64,3 +64,12 @@ type RatingSummary struct {
 	Distribution  map[int]int `json:"distribution"`
 	UpdatedAt     time.Time   `json:"updatedAt"`
 }
+
+// NewRatingSummary returns a zeroed summary for productID with a pre-populated
+// distribution map (all five star buckets present, count=0).
+func NewRatingSummary(productID string) *RatingSummary {
+	return &RatingSummary{
+		ProductID:    productID,
+		Distribution: map[int]int{1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
+	}
+}

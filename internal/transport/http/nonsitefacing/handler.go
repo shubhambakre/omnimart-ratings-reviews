@@ -124,6 +124,10 @@ func (h *Handler) recompute(w http.ResponseWriter, r *http.Request) {
 		response.FromDomainErr(w, err)
 		return
 	}
-	s, _ := h.Ratings.Get(r.Context(), productID)
+	s, err := h.Ratings.Get(r.Context(), productID)
+	if err != nil {
+		response.FromDomainErr(w, err)
+		return
+	}
 	response.JSON(w, http.StatusOK, s)
 }

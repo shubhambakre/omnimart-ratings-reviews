@@ -3,10 +3,10 @@
 // without needing a system SQLite installation.
 //
 // Schema design notes (production alignment):
-//   - reviews table: productID + status indexed separately for the two hot queries
+//   - reviews table: productID + status indexed for the two hot queries
 //     (public read: productID+APPROVED; internal queue: status=PENDING)
 //   - rating_summaries table: single row per product, upserted on every approval
-//   - idempotency_keys table: unique key -> review_id, used for deduplicated writes
+//   - idempotency_keys table: unique key -> review_id for deduplicated writes
 //
 // All timestamps are stored as Unix nanoseconds (int64) for easy Go round-tripping.
 package sqlite
@@ -14,8 +14,8 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -75,8 +75,28 @@ type ReviewRepo struct {
 	db *sql.DB
 }
 
+// NewRepos opens (or creates) a SQLite file at path, runs the schema migration,
+// and returns both repos sharing one connection — the preferred constructor.
+func NewRepos(path string) (*ReviewRepo, *RatingRepo, error) {
+	db, err := openDB(path)
+	if err != nil {
+		return nil, nil, err
+	}
+	return &ReviewRepo{db: db}, &RatingRepo{db: db}, nil
+}
+
 // NewReviewRepo opens (or creates) a SQLite file at path and runs the schema migration.
+// Prefer NewRepos when you also need a RatingRepo.
 func NewReviewRepo(path string) (*ReviewRepo, error) {
+	db, err := openDB(path)
+	if err != nil {
+		return nil, err
+	}
+	return &ReviewRepo{db: db}, nil
+}
+
+// openDB opens a WAL-mode SQLite connection and runs schema migrations.
+func openDB(path string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
 		return nil, fmt.Errorf("sqlite open: %w", err)
@@ -84,9 +104,10 @@ func NewReviewRepo(path string) (*ReviewRepo, error) {
 	// Single writer to avoid SQLITE_BUSY under concurrent writes; reads use WAL.
 	db.SetMaxOpenConns(1)
 	if _, err := db.Exec(schema); err != nil {
+		db.Close()
 		return nil, fmt.Errorf("sqlite schema: %w", err)
 	}
-	return &ReviewRepo{db: db}, nil
+	return db, nil
 }
 
 func (r *ReviewRepo) Create(_ context.Context, rv *domain.Review) error {
@@ -98,7 +119,7 @@ func (r *ReviewRepo) Create(_ context.Context, rv *domain.Review) error {
 		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
 		rv.ID, rv.ProductID, rv.CustomerID, rv.OrderID,
 		rv.Rating, rv.Title, rv.Body,
-		boolInt(rv.VerifiedPurchase), string(rv.Status),
+		boolInt(rv.VerifiedPurchase), rv.Status,
 		rv.HelpfulCount, rv.UnhelpfulCount, rv.ModerationNotes,
 		rv.CreatedAt.UnixNano(), rv.UpdatedAt.UnixNano(),
 	)
@@ -108,7 +129,7 @@ func (r *ReviewRepo) Create(_ context.Context, rv *domain.Review) error {
 func (r *ReviewRepo) Get(_ context.Context, id string) (*domain.Review, error) {
 	row := r.db.QueryRow(`SELECT * FROM reviews WHERE id = ?`, id)
 	rv, err := scanReview(row)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, domain.ErrReviewNotFound
 	}
 	return rv, err
@@ -122,7 +143,7 @@ func (r *ReviewRepo) Update(_ context.Context, rv *domain.Review) error {
 		  moderation_notes=?, updated_at=?
 		WHERE id=?`,
 		rv.ProductID, rv.CustomerID, rv.OrderID, rv.Rating, rv.Title, rv.Body,
-		boolInt(rv.VerifiedPurchase), string(rv.Status),
+		boolInt(rv.VerifiedPurchase), rv.Status,
 		rv.HelpfulCount, rv.UnhelpfulCount, rv.ModerationNotes,
 		rv.UpdatedAt.UnixNano(), rv.ID,
 	)
@@ -163,11 +184,11 @@ func (r *ReviewRepo) ListByProduct(ctx context.Context, productID string, f repo
 	if err != nil {
 		return nil, "", err
 	}
-	// Reuse the same in-memory cursor logic as the memory repo — the sorted slice
-	// is small enough (product page reads) that this is fine.
+	// DB already orders by (created_at DESC, id DESC); cursor logic operates on
+	// the sorted slice. Upgrade path: push cursor predicate into SQL WHERE clause.
 	startIdx := 0
 	if f.Cursor != "" {
-		startIdx = decodeCursor(f.Cursor, items)
+		startIdx = repository.DecodeCursor(f.Cursor, items)
 	}
 	limit := f.Limit
 	if limit <= 0 || limit > 100 {
@@ -180,7 +201,7 @@ func (r *ReviewRepo) ListByProduct(ctx context.Context, productID string, f repo
 	page := items[startIdx:end]
 	var next string
 	if end < len(items) {
-		next = encodeCursor(items[end-1])
+		next = repository.EncodeCursor(items[end-1])
 	}
 	return page, next, nil
 }
@@ -190,12 +211,12 @@ func (r *ReviewRepo) ListByStatus(_ context.Context, status domain.ReviewStatus,
 		limit = 20
 	}
 	var total int
-	if err := r.db.QueryRow(`SELECT COUNT(*) FROM reviews WHERE status=?`, string(status)).Scan(&total); err != nil {
+	if err := r.db.QueryRow(`SELECT COUNT(*) FROM reviews WHERE status=?`, status).Scan(&total); err != nil {
 		return nil, 0, err
 	}
 	rows, err := r.db.Query(`
 		SELECT * FROM reviews WHERE status=? ORDER BY created_at ASC LIMIT ? OFFSET ?`,
-		string(status), limit, offset)
+		status, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -205,27 +226,20 @@ func (r *ReviewRepo) ListByStatus(_ context.Context, status domain.ReviewStatus,
 }
 
 func (r *ReviewRepo) IncrementHelpful(_ context.Context, id string, delta int) error {
-	res, err := r.db.Exec(`
-		UPDATE reviews SET
-		  helpful_count = MAX(0, helpful_count + ?),
-		  updated_at = ?
-		WHERE id = ?`, delta, time.Now().UnixNano(), id)
-	if err != nil {
-		return err
-	}
-	n, _ := res.RowsAffected()
-	if n == 0 {
-		return domain.ErrReviewNotFound
-	}
-	return nil
+	return r.incrementVote(id, "helpful_count", delta)
 }
 
 func (r *ReviewRepo) IncrementUnhelpful(_ context.Context, id string, delta int) error {
-	res, err := r.db.Exec(`
-		UPDATE reviews SET
-		  unhelpful_count = MAX(0, unhelpful_count + ?),
-		  updated_at = ?
-		WHERE id = ?`, delta, time.Now().UnixNano(), id)
+	return r.incrementVote(id, "unhelpful_count", delta)
+}
+
+// incrementVote updates a vote counter column by delta, clamped to ≥ 0.
+// column is a hardcoded caller constant, not user input — no injection risk.
+func (r *ReviewRepo) incrementVote(id, column string, delta int) error {
+	res, err := r.db.Exec(
+		"UPDATE reviews SET "+column+" = MAX(0, "+column+" + ?), updated_at = ? WHERE id = ?",
+		delta, time.Now().UnixNano(), id,
+	)
 	if err != nil {
 		return err
 	}
@@ -239,7 +253,7 @@ func (r *ReviewRepo) IncrementUnhelpful(_ context.Context, id string, delta int)
 func (r *ReviewRepo) LookupIdempotencyKey(_ context.Context, key string) (string, error) {
 	var id string
 	err := r.db.QueryRow(`SELECT review_id FROM idempotency_keys WHERE idem_key=?`, key).Scan(&id)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return "", nil
 	}
 	return id, err
@@ -258,7 +272,8 @@ type RatingRepo struct {
 	db *sql.DB
 }
 
-// NewRatingRepo shares the same DB file as ReviewRepo.
+// NewRatingRepo wraps an existing *sql.DB. Use NewRepos to get both repos from
+// a single path without handling the connection yourself.
 func NewRatingRepo(db *sql.DB) *RatingRepo {
 	return &RatingRepo{db: db}
 }
@@ -272,11 +287,8 @@ func (r *RatingRepo) Get(_ context.Context, productID string) (*domain.RatingSum
 		SELECT average_rating, total_reviews, distribution, updated_at
 		FROM rating_summaries WHERE product_id=?`, productID).
 		Scan(&avg, &total, &dist, &updatedNano)
-	if err == sql.ErrNoRows {
-		return &domain.RatingSummary{
-			ProductID:    productID,
-			Distribution: map[int]int{1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
-		}, nil
+	if errors.Is(err, sql.ErrNoRows) {
+		return domain.NewRatingSummary(productID), nil
 	}
 	if err != nil {
 		return nil, err
@@ -307,9 +319,6 @@ func (r *RatingRepo) Upsert(_ context.Context, s *domain.RatingSummary) error {
 	return err
 }
 
-// DB returns the underlying *sql.DB so a shared connection can be passed to RatingRepo.
-func (r *ReviewRepo) DB() *sql.DB { return r.db }
-
 // -----------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------
@@ -325,11 +334,13 @@ func buildAllByProductQuery(productID string, statuses []domain.ReviewStatus) (s
 	args := []any{productID}
 	q := `SELECT * FROM reviews WHERE product_id=?`
 	if len(statuses) > 0 {
-		placeholders := strings.Repeat("?,", len(statuses))
-		placeholders = placeholders[:len(placeholders)-1]
-		q += " AND status IN (" + placeholders + ")"
+		ph := make([]string, len(statuses))
+		for i := range ph {
+			ph[i] = "?"
+		}
+		q += " AND status IN (" + strings.Join(ph, ",") + ")"
 		for _, s := range statuses {
-			args = append(args, string(s))
+			args = append(args, s)
 		}
 	}
 	q += ` ORDER BY created_at DESC, id DESC`
@@ -372,27 +383,4 @@ func scanReviews(rows *sql.Rows) ([]*domain.Review, error) {
 		out = append(out, rv)
 	}
 	return out, rows.Err()
-}
-
-func encodeCursor(rv *domain.Review) string {
-	raw := fmt.Sprintf("%d|%s", rv.CreatedAt.UnixNano(), rv.ID)
-	return base64.RawURLEncoding.EncodeToString([]byte(raw))
-}
-
-func decodeCursor(cursor string, sorted []*domain.Review) int {
-	b, err := base64.RawURLEncoding.DecodeString(cursor)
-	if err != nil {
-		return 0
-	}
-	parts := strings.SplitN(string(b), "|", 2)
-	if len(parts) != 2 {
-		return 0
-	}
-	id := parts[1]
-	for i, rv := range sorted {
-		if rv.ID == id {
-			return i + 1
-		}
-	}
-	return 0
 }

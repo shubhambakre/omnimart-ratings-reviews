@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -112,17 +111,19 @@ func mustBuildRepos(cfg config.Config, log *slog.Logger) (repository.ReviewRepos
 	switch cfg.StorageDriver {
 	case "sqlite":
 		log.Info("storage driver", "driver", "sqlite", "path", cfg.StoragePath)
-		rr, err := sqliterepo.NewReviewRepo(cfg.StoragePath)
+		rr, rt, err := sqliterepo.NewRepos(cfg.StoragePath)
 		if err != nil {
 			log.Error("sqlite init failed", "err", err)
 			os.Exit(1)
 		}
-		return rr, sqliterepo.NewRatingRepo(rr.DB())
+		return rr, rt
 	case "memory", "":
 		log.Info("storage driver", "driver", "memory")
 		return memory.NewReviewRepo(), memory.NewRatingRepo()
 	default:
-		panic(fmt.Sprintf("unknown STORAGE_DRIVER=%q (valid: memory, sqlite)", cfg.StorageDriver))
+		log.Error("unknown storage driver", "driver", cfg.StorageDriver, "valid", "memory, sqlite")
+		os.Exit(1)
+		panic("unreachable") // satisfies compiler; os.Exit above terminates the process
 	}
 }
 

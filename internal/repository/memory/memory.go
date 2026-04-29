@@ -2,10 +2,7 @@ package memory
 
 import (
 	"context"
-	"encoding/base64"
-	"fmt"
 	"sort"
-	"strings"
 	"sync"
 
 	"github.com/shubhambakre/omnimart-ratings-reviews/internal/domain"
@@ -109,7 +106,7 @@ func (r *ReviewRepo) ListByProduct(ctx context.Context, productID string, f repo
 
 	startIdx := 0
 	if f.Cursor != "" {
-		startIdx = decodeCursor(f.Cursor, items)
+		startIdx = repository.DecodeCursor(f.Cursor, items)
 	}
 	limit := f.Limit
 	if limit <= 0 || limit > 100 {
@@ -122,7 +119,7 @@ func (r *ReviewRepo) ListByProduct(ctx context.Context, productID string, f repo
 	page := items[startIdx:end]
 	var next string
 	if end < len(items) {
-		next = encodeCursor(items[end-1])
+		next = repository.EncodeCursor(items[end-1])
 	}
 	return page, next, nil
 }
@@ -207,10 +204,7 @@ func (r *RatingRepo) Get(_ context.Context, productID string) (*domain.RatingSum
 	defer r.mu.RUnlock()
 	s, ok := r.summary[productID]
 	if !ok {
-		return &domain.RatingSummary{
-			ProductID:    productID,
-			Distribution: map[int]int{1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
-		}, nil
+		return domain.NewRatingSummary(productID), nil
 	}
 	cp := *s
 	cp.Distribution = make(map[int]int, len(s.Distribution))
@@ -244,27 +238,3 @@ func statusMatch(s domain.ReviewStatus, allowed []domain.ReviewStatus) bool {
 	return false
 }
 
-// Cursor encodes "createdAt|id" base64. decodeCursor finds the index of the next
-// item AFTER the cursor's pointed-to review in the already-sorted slice.
-func encodeCursor(rv *domain.Review) string {
-	raw := fmt.Sprintf("%d|%s", rv.CreatedAt.UnixNano(), rv.ID)
-	return base64.RawURLEncoding.EncodeToString([]byte(raw))
-}
-
-func decodeCursor(cursor string, sorted []*domain.Review) int {
-	b, err := base64.RawURLEncoding.DecodeString(cursor)
-	if err != nil {
-		return 0
-	}
-	parts := strings.SplitN(string(b), "|", 2)
-	if len(parts) != 2 {
-		return 0
-	}
-	id := parts[1]
-	for i, rv := range sorted {
-		if rv.ID == id {
-			return i + 1
-		}
-	}
-	return 0
-}
