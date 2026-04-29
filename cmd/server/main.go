@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -12,7 +13,9 @@ import (
 
 	"github.com/shubhambakre/omnimart-ratings-reviews/internal/config"
 	"github.com/shubhambakre/omnimart-ratings-reviews/internal/moderation"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/repository"
 	"github.com/shubhambakre/omnimart-ratings-reviews/internal/repository/memory"
+	sqliterepo "github.com/shubhambakre/omnimart-ratings-reviews/internal/repository/sqlite"
 	"github.com/shubhambakre/omnimart-ratings-reviews/internal/service"
 	"github.com/shubhambakre/omnimart-ratings-reviews/internal/transport/http/middleware"
 	"github.com/shubhambakre/omnimart-ratings-reviews/internal/transport/http/nonsitefacing"
@@ -23,8 +26,7 @@ func main() {
 	cfg := config.Load()
 	log := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 
-	reviewRepo := memory.NewReviewRepo()
-	ratingRepo := memory.NewRatingRepo()
+	reviewRepo, ratingRepo := mustBuildRepos(cfg, log)
 	mod := moderation.NewSimpleModerator()
 
 	ratingSvc := service.NewRatingService(reviewRepo, ratingRepo, log)
@@ -103,6 +105,24 @@ func gatedExceptHealth(key string) func(http.Handler) http.Handler {
 			}
 			gated.ServeHTTP(w, r)
 		})
+	}
+}
+
+func mustBuildRepos(cfg config.Config, log *slog.Logger) (repository.ReviewRepository, repository.RatingRepository) {
+	switch cfg.StorageDriver {
+	case "sqlite":
+		log.Info("storage driver", "driver", "sqlite", "path", cfg.StoragePath)
+		rr, err := sqliterepo.NewReviewRepo(cfg.StoragePath)
+		if err != nil {
+			log.Error("sqlite init failed", "err", err)
+			os.Exit(1)
+		}
+		return rr, sqliterepo.NewRatingRepo(rr.DB())
+	case "memory", "":
+		log.Info("storage driver", "driver", "memory")
+		return memory.NewReviewRepo(), memory.NewRatingRepo()
+	default:
+		panic(fmt.Sprintf("unknown STORAGE_DRIVER=%q (valid: memory, sqlite)", cfg.StorageDriver))
 	}
 }
 

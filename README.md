@@ -23,13 +23,14 @@ In production these would terminate in different network zones — site-facing b
 - **State machine**: `PENDING → APPROVED | REJECTED`. Auto-approval if moderation is clean; otherwise human review via the internal API.
 - **Observability**: structured logs (`log/slog`), request IDs propagated through context and reflected in `X-Request-Id`.
 - **Graceful shutdown** on `SIGTERM`, sane HTTP timeouts (defending against slowloris and runaway clients).
-- **Zero external deps**: stdlib only, using Go 1.22's `net/http` method-prefix patterns. Easy to audit for a POC.
+- **Zero external deps** (in-memory mode): stdlib only, using Go 1.22's `net/http` method-prefix patterns. Easy to audit for a POC.
+- **SQLite backend** (`STORAGE_DRIVER=sqlite`): production-schema SQLite via `modernc.org/sqlite` (pure Go, no CGO) — real indexes, WAL mode, idempotency key table. Start with `make run-sqlite`.
 
 ## What's intentionally stubbed (and the upgrade path)
 
 | POC | Production |
 |-----|------------|
-| In-memory repo | Cassandra (write-heavy, productID partition) for reviews; Redis for hot summaries |
+| In-memory repo (default) / SQLite (`make run-sqlite`) | Cassandra (write-heavy, productID partition) for reviews; Redis for hot summaries |
 | Inline aggregate recompute | Kafka topic `review.approved` → debounced consumer with windowed aggregation |
 | `X-Customer-Id` header | OAuth/JWT issued by shopper identity service, scope-checked |
 | `X-Api-Key` header | mTLS + SPIFFE service identity via Istio/Linkerd |
@@ -58,6 +59,13 @@ In another terminal:
 ```bash
 make curl-demo  # runs the smoke-test script
 make test       # runs the e2e test suite
+```
+
+For a **SQLite-backed** run (persistent, production-schema):
+
+```bash
+make run-sqlite   # starts both servers backed by ./data/omnimart.db
+make evidence     # captures full request/response evidence to docs/EVIDENCE.md
 ```
 
 ## Announcement page
@@ -99,7 +107,8 @@ omnimart-ratings-reviews/
 │   ├── config/                              # env-driven config
 │   ├── domain/                              # entities + sentinel errors
 │   ├── repository/                          # storage interfaces
-│   │   └── memory/                          # in-memory implementation
+│   │   ├── memory/                          # in-memory implementation
+│   │   └── sqlite/                          # SQLite implementation (WAL, pure Go)
 │   ├── moderation/                          # pluggable moderator
 │   ├── service/                             # use-case orchestration
 │   │   ├── review_service.go
@@ -110,8 +119,12 @@ omnimart-ratings-reviews/
 │       ├── sitefacing/                      # public handlers
 │       └── nonsitefacing/                   # internal handlers
 ├── tests/e2e_test.go                        # in-process httptest end-to-end
-├── scripts/curl_examples.sh                 # live-server smoke test
-├── docs/index.html                          # interactive announcement page
+├── scripts/
+│   ├── curl_examples.sh                     # live-server smoke test
+│   └── capture_evidence.sh                  # generates docs/EVIDENCE.md
+├── docs/
+│   ├── index.html                           # interactive announcement page
+│   └── EVIDENCE.md                          # captured request/response evidence
 ├── Makefile
 └── go.mod
 ```
@@ -124,3 +137,9 @@ omnimart-ratings-reviews/
 | `INTERNAL_ADDR` | `:8081` | Internal listener |
 | `INTERNAL_API_KEY` | `dev-internal-key` | Required header for internal API |
 | `SEED` | `true` | Load sample reviews on startup |
+| `STORAGE_DRIVER` | `memory` | `memory` or `sqlite` |
+| `STORAGE_PATH` | `./data/omnimart.db` | SQLite file path (driver=sqlite only) |
+
+## Evidence
+
+[`docs/EVIDENCE.md`](docs/EVIDENCE.md) contains a full captured request/response log across all 8 scenario groups (health, reads, pagination, auto-approval, moderation, helpful votes, bulk ingest, validation errors) run against the live SQLite-backed server.

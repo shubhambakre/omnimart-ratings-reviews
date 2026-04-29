@@ -1,19 +1,29 @@
-.PHONY: run test build vet tidy curl-demo
+.PHONY: run run-sqlite test build vet tidy curl-demo evidence
+
+# Auto-detect Go: prefer one on PATH, fall back to the standard /usr/local/go install.
+GO := $(shell command -v go 2>/dev/null || ([ -x /usr/local/go/bin/go ] && echo /usr/local/go/bin/go) || echo go)
 
 run:
-	go run ./cmd/server
+	$(GO) run ./cmd/server
+
+run-sqlite:
+	mkdir -p data
+	STORAGE_DRIVER=sqlite STORAGE_PATH=./data/omnimart.db $(GO) run ./cmd/server
 
 build:
-	go build -o bin/server ./cmd/server
+	$(GO) build -o bin/server ./cmd/server
 
 test:
-	go test ./... -count=1
+	$(GO) test ./... -count=1
 
 vet:
-	go vet ./...
+	$(GO) vet ./...
 
 tidy:
-	go mod tidy
+	$(GO) mod tidy
 
 curl-demo:
 	./scripts/curl_examples.sh
+
+evidence:
+	./scripts/capture_evidence.sh
