@@ -1,6 +1,6 @@
 # OmniMart Ratings & Reviews — Local Evidence Report
 
-**Generated:** 2026-04-29T05:48:56Z
+**Generated:** 2026-04-29T15:18:30Z
 **Site-facing:** `http://localhost:8080`
 **Internal (non-site-facing):** `http://localhost:8081`
 **Storage driver:** `sqlite`
@@ -62,10 +62,10 @@ GET http://localhost:8080/v1/products/PROD-1/reviews?limit=2
 ```json
 {
     "data": {
-        "nextCursor": "MTc3NzQ0MTYwNzIzMDU4MjAwMHxydl8wNzQ0M2I2OTA3YjdiMDJjOWM1MjI2MmQ",
+        "nextCursor": "MTc3NzQ3NTkwMTE0NjQ2MzAwMHxydl9jOWEzMWViZWY2ZmY4YTEzYjY3ZDNlYTc",
         "reviews": [
             {
-                "id": "rv_fb19f6013b0f560b8e56b63e",
+                "id": "rv_31ef7cf5e4578baced532941",
                 "productId": "PROD-1",
                 "customerId": "C-3",
                 "rating": 2,
@@ -75,11 +75,11 @@ GET http://localhost:8080/v1/products/PROD-1/reviews?limit=2
                 "status": "APPROVED",
                 "helpfulCount": 0,
                 "unhelpfulCount": 0,
-                "createdAt": "2026-04-28T22:46:47.230742-07:00",
-                "updatedAt": "2026-04-28T22:46:47.230742-07:00"
+                "createdAt": "2026-04-29T08:18:21.146608-07:00",
+                "updatedAt": "2026-04-29T08:18:21.146608-07:00"
             },
             {
-                "id": "rv_07443b6907b7b02c9c52262d",
+                "id": "rv_c9a31ebef6ff8a13b67d3ea7",
                 "productId": "PROD-1",
                 "customerId": "C-2",
                 "rating": 4,
@@ -89,8 +89,8 @@ GET http://localhost:8080/v1/products/PROD-1/reviews?limit=2
                 "status": "APPROVED",
                 "helpfulCount": 0,
                 "unhelpfulCount": 0,
-                "createdAt": "2026-04-28T22:46:47.230582-07:00",
-                "updatedAt": "2026-04-28T22:46:47.230582-07:00"
+                "createdAt": "2026-04-29T08:18:21.146463-07:00",
+                "updatedAt": "2026-04-29T08:18:21.146463-07:00"
             }
         ]
     }
@@ -101,7 +101,7 @@ GET http://localhost:8080/v1/products/PROD-1/reviews?limit=2
 ## 2.2 Second page via cursor
 
 ```http
-GET http://localhost:8080/v1/products/PROD-1/reviews?limit=2&cursor=MTc3NzQ0MTYwNzIzMDU4MjAwMHxydl8wNzQ0M2I2OTA3YjdiMDJjOWM1MjI2MmQ
+GET http://localhost:8080/v1/products/PROD-1/reviews?limit=2&cursor=MTc3NzQ3NTkwMTE0NjQ2MzAwMHxydl9jOWEzMWViZWY2ZmY4YTEzYjY3ZDNlYTc
 ```
 
 **Status: 200 ✅**
@@ -112,7 +112,7 @@ GET http://localhost:8080/v1/products/PROD-1/reviews?limit=2&cursor=MTc3NzQ0MTYw
         "nextCursor": "",
         "reviews": [
             {
-                "id": "rv_49bfb41de9a70d76880a4686",
+                "id": "rv_32a4951a70e1ec4ea514644a",
                 "productId": "PROD-1",
                 "customerId": "C-1",
                 "rating": 5,
@@ -122,8 +122,8 @@ GET http://localhost:8080/v1/products/PROD-1/reviews?limit=2&cursor=MTc3NzQ0MTYw
                 "status": "APPROVED",
                 "helpfulCount": 0,
                 "unhelpfulCount": 0,
-                "createdAt": "2026-04-28T22:46:47.230301-07:00",
-                "updatedAt": "2026-04-28T22:46:47.230301-07:00"
+                "createdAt": "2026-04-29T08:18:21.146183-07:00",
+                "updatedAt": "2026-04-29T08:18:21.146183-07:00"
             }
         ]
     }
@@ -152,7 +152,7 @@ GET http://localhost:8080/v1/products/PROD-1/ratings/summary
             "4": 1,
             "5": 1
         },
-        "updatedAt": "2026-04-28T22:46:47.230844-07:00"
+        "updatedAt": "2026-04-29T08:18:21.14669-07:00"
     }
 }
 ```
@@ -174,7 +174,7 @@ Idempotency-Key: evd-clean-1
 ```json
 {
     "data": {
-        "id": "rv_975682208bf3b32e54b43f5f",
+        "id": "rv_6a0be45861e08dcf69148ee1",
         "productId": "PROD-EVD",
         "customerId": "C-EVD-1",
         "rating": 5,
@@ -184,8 +184,8 @@ Idempotency-Key: evd-clean-1
         "status": "APPROVED",
         "helpfulCount": 0,
         "unhelpfulCount": 0,
-        "createdAt": "2026-04-28T22:48:57.066506-07:00",
-        "updatedAt": "2026-04-28T22:48:57.066506-07:00"
+        "createdAt": "2026-04-29T08:18:30.614642-07:00",
+        "updatedAt": "2026-04-29T08:18:30.614642-07:00"
     }
 }
 ```
@@ -202,7 +202,7 @@ POST http://localhost:8080/v1/products/PROD-EVD/reviews (duplicate Idempotency-K
 ```json
 {
     "data": {
-        "id": "rv_975682208bf3b32e54b43f5f",
+        "id": "rv_6a0be45861e08dcf69148ee1",
         "productId": "PROD-EVD",
         "customerId": "C-EVD-1",
         "rating": 5,
@@ -212,19 +212,19 @@ POST http://localhost:8080/v1/products/PROD-EVD/reviews (duplicate Idempotency-K
         "status": "APPROVED",
         "helpfulCount": 0,
         "unhelpfulCount": 0,
-        "createdAt": "2026-04-28T22:48:57.066506-07:00",
-        "updatedAt": "2026-04-28T22:48:57.066506-07:00"
+        "createdAt": "2026-04-29T08:18:30.614642-07:00",
+        "updatedAt": "2026-04-29T08:18:30.614642-07:00"
     }
 }
 ```
 
-> **Idempotency verified** — both calls returned `rv_975682208bf3b32e54b43f5f` ✅
+> **Idempotency verified** — both calls returned `rv_6a0be45861e08dcf69148ee1` ✅
 
 
 ## 3.2 Fetch single approved review
 
 ```http
-GET http://localhost:8080/v1/reviews/rv_975682208bf3b32e54b43f5f
+GET http://localhost:8080/v1/reviews/rv_6a0be45861e08dcf69148ee1
 ```
 
 **Status: 200 ✅**
@@ -232,7 +232,7 @@ GET http://localhost:8080/v1/reviews/rv_975682208bf3b32e54b43f5f
 ```json
 {
     "data": {
-        "id": "rv_975682208bf3b32e54b43f5f",
+        "id": "rv_6a0be45861e08dcf69148ee1",
         "productId": "PROD-EVD",
         "customerId": "C-EVD-1",
         "rating": 5,
@@ -242,8 +242,8 @@ GET http://localhost:8080/v1/reviews/rv_975682208bf3b32e54b43f5f
         "status": "APPROVED",
         "helpfulCount": 0,
         "unhelpfulCount": 0,
-        "createdAt": "2026-04-28T22:48:57.066506-07:00",
-        "updatedAt": "2026-04-28T22:48:57.066506-07:00"
+        "createdAt": "2026-04-29T08:18:30.614642-07:00",
+        "updatedAt": "2026-04-29T08:18:30.614642-07:00"
     }
 }
 ```
@@ -264,7 +264,7 @@ X-Customer-Id: C-EVD-2
 ```json
 {
     "data": {
-        "id": "rv_3af9dbf37acaff0b282cadc4",
+        "id": "rv_41f106f521e88c86b438860d",
         "productId": "PROD-EVD",
         "customerId": "C-EVD-2",
         "rating": 1,
@@ -275,8 +275,8 @@ X-Customer-Id: C-EVD-2
         "helpfulCount": 0,
         "unhelpfulCount": 0,
         "moderationNotes": "contains banned term: scam",
-        "createdAt": "2026-04-28T22:48:57.276683-07:00",
-        "updatedAt": "2026-04-28T22:48:57.276683-07:00"
+        "createdAt": "2026-04-29T08:18:30.789576-07:00",
+        "updatedAt": "2026-04-29T08:18:30.789576-07:00"
     }
 }
 ```
@@ -296,7 +296,7 @@ GET http://localhost:8080/v1/products/PROD-EVD/reviews (should only show APPROVE
         "nextCursor": "",
         "reviews": [
             {
-                "id": "rv_975682208bf3b32e54b43f5f",
+                "id": "rv_6a0be45861e08dcf69148ee1",
                 "productId": "PROD-EVD",
                 "customerId": "C-EVD-1",
                 "rating": 5,
@@ -306,8 +306,8 @@ GET http://localhost:8080/v1/products/PROD-EVD/reviews (should only show APPROVE
                 "status": "APPROVED",
                 "helpfulCount": 0,
                 "unhelpfulCount": 0,
-                "createdAt": "2026-04-28T22:48:57.066506-07:00",
-                "updatedAt": "2026-04-28T22:48:57.066506-07:00"
+                "createdAt": "2026-04-29T08:18:30.614642-07:00",
+                "updatedAt": "2026-04-29T08:18:30.614642-07:00"
             }
         ]
     }
@@ -353,7 +353,7 @@ X-Api-Key: dev-internal-key
         "offset": 0,
         "reviews": [
             {
-                "id": "rv_3af9dbf37acaff0b282cadc4",
+                "id": "rv_41f106f521e88c86b438860d",
                 "productId": "PROD-EVD",
                 "customerId": "C-EVD-2",
                 "rating": 1,
@@ -364,8 +364,8 @@ X-Api-Key: dev-internal-key
                 "helpfulCount": 0,
                 "unhelpfulCount": 0,
                 "moderationNotes": "contains banned term: scam",
-                "createdAt": "2026-04-28T22:48:57.276683-07:00",
-                "updatedAt": "2026-04-28T22:48:57.276683-07:00"
+                "createdAt": "2026-04-29T08:18:30.789576-07:00",
+                "updatedAt": "2026-04-29T08:18:30.789576-07:00"
             }
         ],
         "total": 1
@@ -377,7 +377,7 @@ X-Api-Key: dev-internal-key
 ## 5.3 Approve the pending review
 
 ```http
-PATCH http://localhost:8081/internal/v1/reviews/rv_3af9dbf37acaff0b282cadc4/moderation
+PATCH http://localhost:8081/internal/v1/reviews/rv_41f106f521e88c86b438860d/moderation
 X-Api-Key: dev-internal-key
 Content-Type: application/json
 
@@ -389,7 +389,7 @@ Content-Type: application/json
 ```json
 {
     "data": {
-        "id": "rv_3af9dbf37acaff0b282cadc4",
+        "id": "rv_41f106f521e88c86b438860d",
         "productId": "PROD-EVD",
         "customerId": "C-EVD-2",
         "rating": 1,
@@ -400,8 +400,8 @@ Content-Type: application/json
         "helpfulCount": 0,
         "unhelpfulCount": 0,
         "moderationNotes": "false positive from word-list moderator",
-        "createdAt": "2026-04-28T22:48:57.276683-07:00",
-        "updatedAt": "2026-04-28T22:48:57.766401-07:00"
+        "createdAt": "2026-04-29T08:18:30.789576-07:00",
+        "updatedAt": "2026-04-29T08:18:31.007955-07:00"
     }
 }
 ```
@@ -421,7 +421,7 @@ GET http://localhost:8080/v1/products/PROD-EVD/reviews
         "nextCursor": "",
         "reviews": [
             {
-                "id": "rv_3af9dbf37acaff0b282cadc4",
+                "id": "rv_41f106f521e88c86b438860d",
                 "productId": "PROD-EVD",
                 "customerId": "C-EVD-2",
                 "rating": 1,
@@ -432,11 +432,11 @@ GET http://localhost:8080/v1/products/PROD-EVD/reviews
                 "helpfulCount": 0,
                 "unhelpfulCount": 0,
                 "moderationNotes": "false positive from word-list moderator",
-                "createdAt": "2026-04-28T22:48:57.276683-07:00",
-                "updatedAt": "2026-04-28T22:48:57.766401-07:00"
+                "createdAt": "2026-04-29T08:18:30.789576-07:00",
+                "updatedAt": "2026-04-29T08:18:31.007955-07:00"
             },
             {
-                "id": "rv_975682208bf3b32e54b43f5f",
+                "id": "rv_6a0be45861e08dcf69148ee1",
                 "productId": "PROD-EVD",
                 "customerId": "C-EVD-1",
                 "rating": 5,
@@ -446,8 +446,8 @@ GET http://localhost:8080/v1/products/PROD-EVD/reviews
                 "status": "APPROVED",
                 "helpfulCount": 0,
                 "unhelpfulCount": 0,
-                "createdAt": "2026-04-28T22:48:57.066506-07:00",
-                "updatedAt": "2026-04-28T22:48:57.066506-07:00"
+                "createdAt": "2026-04-29T08:18:30.614642-07:00",
+                "updatedAt": "2026-04-29T08:18:30.614642-07:00"
             }
         ]
     }
@@ -463,7 +463,7 @@ GET http://localhost:8080/v1/products/PROD-EVD/reviews
 ## 6.1 Mark a review helpful
 
 ```http
-POST http://localhost:8080/v1/reviews/rv_975682208bf3b32e54b43f5f/helpful
+POST http://localhost:8080/v1/reviews/rv_6a0be45861e08dcf69148ee1/helpful
 X-Customer-Id: C-EVD-3
 ```
 
@@ -472,7 +472,7 @@ X-Customer-Id: C-EVD-3
 ```json
 {
     "data": {
-        "id": "rv_975682208bf3b32e54b43f5f",
+        "id": "rv_6a0be45861e08dcf69148ee1",
         "productId": "PROD-EVD",
         "customerId": "C-EVD-1",
         "rating": 5,
@@ -482,8 +482,8 @@ X-Customer-Id: C-EVD-3
         "status": "APPROVED",
         "helpfulCount": 1,
         "unhelpfulCount": 0,
-        "createdAt": "2026-04-28T22:48:57.066506-07:00",
-        "updatedAt": "2026-04-28T22:48:57.887202-07:00"
+        "createdAt": "2026-04-29T08:18:30.614642-07:00",
+        "updatedAt": "2026-04-29T08:18:31.117888-07:00"
     }
 }
 ```
@@ -492,7 +492,7 @@ X-Customer-Id: C-EVD-3
 ## 6.2 Mark a review unhelpful
 
 ```http
-POST http://localhost:8080/v1/reviews/rv_975682208bf3b32e54b43f5f/unhelpful
+POST http://localhost:8080/v1/reviews/rv_6a0be45861e08dcf69148ee1/unhelpful
 X-Customer-Id: C-EVD-4
 ```
 
@@ -501,7 +501,7 @@ X-Customer-Id: C-EVD-4
 ```json
 {
     "data": {
-        "id": "rv_975682208bf3b32e54b43f5f",
+        "id": "rv_6a0be45861e08dcf69148ee1",
         "productId": "PROD-EVD",
         "customerId": "C-EVD-1",
         "rating": 5,
@@ -511,8 +511,8 @@ X-Customer-Id: C-EVD-4
         "status": "APPROVED",
         "helpfulCount": 1,
         "unhelpfulCount": 1,
-        "createdAt": "2026-04-28T22:48:57.066506-07:00",
-        "updatedAt": "2026-04-28T22:48:57.938753-07:00"
+        "createdAt": "2026-04-29T08:18:30.614642-07:00",
+        "updatedAt": "2026-04-29T08:18:31.163411-07:00"
     }
 }
 ```
@@ -534,9 +534,9 @@ Content-Type: application/json
 {
     "data": {
         "created": [
-            "rv_a0e7f6a807f46c6e76581569",
-            "rv_61efd64dd072e322bc78b808",
-            "rv_51b961af0079f3b8da5efec2"
+            "rv_2f4d86af31a0160dfe235531",
+            "rv_e9130a680da258e4a46a2edb",
+            "rv_0659646c731c3a9db50062d1"
         ],
         "failed": null
     }
@@ -566,7 +566,7 @@ X-Api-Key: dev-internal-key
             "4": 1,
             "5": 1
         },
-        "updatedAt": "2026-04-28T22:48:58.041903-07:00"
+        "updatedAt": "2026-04-29T08:18:31.25271-07:00"
     }
 }
 ```
@@ -618,7 +618,7 @@ POST http://localhost:8080/v1/products/P/reviews  (no auth header)
 ## 8.3 Hard delete (internal)
 
 ```http
-DELETE http://localhost:8081/internal/v1/reviews/rv_3af9dbf37acaff0b282cadc4
+DELETE http://localhost:8081/internal/v1/reviews/rv_41f106f521e88c86b438860d
 X-Api-Key: dev-internal-key
 ```
 
@@ -632,7 +632,7 @@ X-Api-Key: dev-internal-key
 ## 8.4 Fetch deleted review → 404
 
 ```http
-GET http://localhost:8080/v1/reviews/rv_3af9dbf37acaff0b282cadc4
+GET http://localhost:8080/v1/reviews/rv_41f106f521e88c86b438860d
 ```
 
 **Status: 404 ⚠️**
@@ -649,4 +649,4 @@ GET http://localhost:8080/v1/reviews/rv_3af9dbf37acaff0b282cadc4
 
 ---
 
-*Evidence captured at 2026-04-29T05:48:56Z by capture_evidence.sh*
+*Evidence captured at 2026-04-29T15:18:30Z by capture_evidence.sh*
