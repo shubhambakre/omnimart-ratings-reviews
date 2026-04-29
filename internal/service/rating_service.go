@@ -6,8 +6,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/walmart/ratings-reviews/internal/domain"
-	"github.com/walmart/ratings-reviews/internal/repository"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/domain"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/repository"
 )
 
 type RatingService struct {

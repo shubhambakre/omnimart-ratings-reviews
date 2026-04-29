@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/walmart/ratings-reviews/internal/domain"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/domain"
 )
 
 type Envelope struct {

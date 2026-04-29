@@ -9,7 +9,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/walmart/ratings-reviews/internal/transport/http/response"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/transport/http/response"
 )
 
 type ctxKey string

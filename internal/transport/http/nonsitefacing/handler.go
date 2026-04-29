@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/walmart/ratings-reviews/internal/service"
-	"github.com/walmart/ratings-reviews/internal/transport/http/response"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/service"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/transport/http/response"
 )
 
 type Handler struct {

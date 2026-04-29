@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/walmart/ratings-reviews/internal/domain"
-	"github.com/walmart/ratings-reviews/internal/repository"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/domain"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/repository"
 )
 
 type ReviewRepo struct {

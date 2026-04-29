@@ -1,6 +1,8 @@
-# Walmart Ratings & Reviews — POC (Go)
+# OmniMart Ratings & Reviews — POC (Go)
 
-A runnable proof-of-concept for a Walmart-style ratings & reviews platform, with **two physically separate API surfaces**:
+> **OmniMart** is a fictional retailer used as the example tenant for this proof-of-concept. The architecture and engineering choices are vendor-neutral and applicable to any large-scale e-commerce platform. No real-world brand is intended or implied.
+
+A runnable proof-of-concept for an enterprise-grade ratings & reviews platform, with **two physically separate API surfaces**:
 
 | Tier | Port | Audience | Auth | Examples |
 |------|------|----------|------|----------|
@@ -9,7 +11,7 @@ A runnable proof-of-concept for a Walmart-style ratings & reviews platform, with
 
 ## Why two listeners?
 
-In production these would terminate in different network zones — site-facing behind the Walmart CDN/WAF, internal behind the service mesh with mTLS. Sharing a TCP listener is the kind of architectural shortcut that ends up on a postmortem ("a public route accidentally exposed the moderation queue"). Different ports → different middleware stacks → no accidental crossover. The POC encodes this from day one.
+In production these would terminate in different network zones — site-facing behind the CDN/WAF, internal behind the service mesh with mTLS. Sharing a TCP listener is the kind of architectural shortcut that ends up on a postmortem ("a public route accidentally exposed the moderation queue"). Different ports → different middleware stacks → no accidental crossover. The POC encodes this from day one.
 
 ## Design highlights (Principal-engineer rationale)
 
@@ -41,7 +43,7 @@ In production these would terminate in different network zones — site-facing b
 Requires Go 1.22+.
 
 ```bash
-cd walmart-ratings-reviews
+cd omnimart-ratings-reviews
 make run        # starts both servers, seeded with sample data
 ```
 
@@ -57,6 +59,10 @@ In another terminal:
 make curl-demo  # runs the smoke-test script
 make test       # runs the e2e test suite
 ```
+
+## Announcement page
+
+A self-contained, interactive HTML announcement lives at [`docs/index.html`](docs/index.html). Open it directly in a browser, or enable GitHub Pages from the `/docs` folder to publish it.
 
 ## API reference
 
@@ -87,7 +93,7 @@ make test       # runs the e2e test suite
 ## Project layout
 
 ```
-walmart-ratings-reviews/
+omnimart-ratings-reviews/
 ├── cmd/server/main.go                       # composition root, two http.Servers
 ├── internal/
 │   ├── config/                              # env-driven config
@@ -105,6 +111,7 @@ walmart-ratings-reviews/
 │       └── nonsitefacing/                   # internal handlers
 ├── tests/e2e_test.go                        # in-process httptest end-to-end
 ├── scripts/curl_examples.sh                 # live-server smoke test
+├── docs/index.html                          # interactive announcement page
 ├── Makefile
 └── go.mod
 ```

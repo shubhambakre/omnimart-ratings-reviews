@@ -10,13 +10,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/walmart/ratings-reviews/internal/domain"
-	"github.com/walmart/ratings-reviews/internal/moderation"
-	"github.com/walmart/ratings-reviews/internal/repository/memory"
-	"github.com/walmart/ratings-reviews/internal/service"
-	"github.com/walmart/ratings-reviews/internal/transport/http/middleware"
-	"github.com/walmart/ratings-reviews/internal/transport/http/nonsitefacing"
-	"github.com/walmart/ratings-reviews/internal/transport/http/sitefacing"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/domain"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/moderation"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/repository/memory"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/service"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/transport/http/middleware"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/transport/http/nonsitefacing"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/transport/http/sitefacing"
 )
 
 const internalKey = "test-key"

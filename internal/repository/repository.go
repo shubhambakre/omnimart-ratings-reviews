@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/walmart/ratings-reviews/internal/domain"
+	"github.com/shubhambakre/omnimart-ratings-reviews/internal/domain"
 )
 
 type ReviewListFilter struct {
