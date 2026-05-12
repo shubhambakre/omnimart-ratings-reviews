@@ -1,5 +1,9 @@
 # OmniMart Ratings & Reviews — POC (Go)
 
+[![CI](https://github.com/shubhambakre/omnimart-ratings-reviews/actions/workflows/ci.yml/badge.svg)](https://github.com/shubhambakre/omnimart-ratings-reviews/actions/workflows/ci.yml)
+[![Go Version](https://img.shields.io/badge/go-1.25%2B-00ADD8?logo=go)](https://go.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 > **OmniMart** is a fictional retailer used as the example tenant for this proof-of-concept. The architecture and engineering choices are vendor-neutral and applicable to any large-scale e-commerce platform. No real-world brand is intended or implied.
 
 A runnable proof-of-concept for an enterprise-grade ratings & reviews platform, with **two physically separate API surfaces**:
